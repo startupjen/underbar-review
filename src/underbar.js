@@ -170,7 +170,6 @@
   _.reduce = function(collection, iterator, accumulator) {
     //applies iterator(accumulator, item) for each item in the collection
     //return accumulator
-
     //if accumulator has initial value, iterate through collection at 0-index    
     if (accumulator !== undefined) {
       _.each(collection, function(element, index) {
@@ -206,12 +205,38 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    if (iterator === undefined) {
+      iterator = _.identity;
+    }
+
+    return _.reduce(collection, function(accum, item) {
+      //if the accumulator is false already, then accumulator should return false every time from them on
+      if (accum === false) {
+        return false;
+      } else {
+        return Boolean(iterator(item));
+      }
+      //otherwise, do truth test and return result 
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    if (iterator === undefined) {
+      iterator = _.identity;
+    }
+
+    return _.reduce(collection, function(accum, item) {
+      //if the accumulator is false already, then accumulator should return false every time from them on
+      if (accum === true) {
+        return true;
+      } else {
+        return Boolean(iterator(item));
+      }
+      //otherwise, do truth test and return result 
+    }, false);
   };
 
 
@@ -234,11 +259,27 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    //arguments = []
+    //arguments.length
+    for (var i = 1; i < arguments.length; i++) {
+      for (var key in arguments[i]) {
+        obj[key] = arguments[i][key];
+      }
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    for (var i = 1; i < arguments.length; i++) {
+      for (var key in arguments[i]) {
+        if (obj.hasOwnProperty(key) === false) {
+          obj[key] = arguments[i][key];
+        }
+      }
+    }
+    return obj;
   };
 
 
@@ -282,6 +323,22 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    //var alreadyCalled = false;
+    var result = {};
+
+    // TIP: We'll return a new function that delegates to the old one, but only
+    // if it hasn't been called before.
+    return function() {
+      if (result.hasOwnProperty(JSON.stringify(arguments)) === false) {
+        // TIP: .apply(this, arguments) is the standard way to pass on all of the
+        // infromation from one function call to another.
+        result[JSON.stringify(arguments)] = func.apply(this, arguments); //func.apply(this, arguments);
+        //alreadyCalled = true;
+      }
+      // The new function always returns the originally computed result.
+      return result[JSON.stringify(arguments)];
+    };
+
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -291,8 +348,11 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var funcArgs = Array.prototype.slice.call(arguments); //all the arguments in _.delay, and turning into actual array
+    funcArgs = funcArgs.slice(2);
+    console.log(funcArgs);
+    setTimeout(function() { func.apply(func, funcArgs); }, wait);
   };
-
 
   /**
    * ADVANCED COLLECTION OPERATIONS
@@ -305,6 +365,24 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var arrCopy = array.slice();
+    var randomArray = [];
+    var arrayOriginalLength = arrCopy.length;
+
+    //[1,2,3,4,5] , arrCopy.length = 5 , i < 5
+    for (var i = 0; i < arrayOriginalLength; i++) {
+      //if i === arrCopy.length - 1, then just grab the last element left in arrCopy
+      if (arrCopy.length === 1) { 
+        randomArray.push(arrCopy[0]); 
+      } else {
+        var max = arrCopy.length - 1;
+        var min = 0;
+      //Math.random to select index of elements in array 
+        var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
+        randomArray.push(arrCopy.splice(randomIndex, 1)[0]);      
+      }
+    }
+    return randomArray;
   };
 
 
